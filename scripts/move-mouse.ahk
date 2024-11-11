@@ -7,6 +7,15 @@ A_TrayMenu.Delete() ; Clear default menu
 A_TrayMenu.Add("Settings", ShowSettings)
 A_TrayMenu.Add("Exit", (*) => ExitApp())
 
+; Define global variables at the start of the script
+global isDragging := false
+
+; Function to suppress key inputd
+KeySuppressor(*) {
+    ; Empty function to suppress keys
+    return
+}
+
 ; Create the ShowSettings function
 ShowSettings(*) {
     Run(A_ScriptDir "\move-mouse-settings.exe")
@@ -25,7 +34,7 @@ ReadSettingsFile() {
 
         ; Initialize default values
         settings := Map()
-        settings["distance"] := 50
+        settings["distance"] := 20
         settings["interval"] := 1
         settings["activation"] := "LAlt"
         settings["up"] := "w"
@@ -75,7 +84,8 @@ ReadSettingsFile() {
 }
 
 ; Read settings and set up variables
-global moveDistance, moveInterval, keyUp, keyDown, keyLeft, keyRight, keyLeftClick, keyRightClick, activationKey
+global moveDistance, moveInterval, keyUp, keyDown, keyLeft, keyRight, keyLeftClick, keyRightClick, activationKey,
+    isDragging
 
 try {
     if FileExist(settingsPath) {
@@ -113,68 +123,59 @@ HotIfWinActive("A")  ; Apply to all windows
 Hotkey(activationKey, ActivateMove)
 Hotkey(activationKey " Up", DeactivateMove)
 
-; Create suppression hotkeys using $ prefix to prevent recursion
 ActivateMove(*) {
-    global keyUp, keyDown, keyLeft, keyRight, keyLeftClick, keyRightClick
+    global keyUp, keyDown, keyLeft, keyRight, keyLeftClick, keyRightClick, moveInterval
 
-    ; Create hotkeys that suppress the original input
+    ; Suppress movement keys
     Hotkey("$" keyUp, KeySuppressor, "On")
     Hotkey("$" keyLeft, KeySuppressor, "On")
     Hotkey("$" keyDown, KeySuppressor, "On")
     Hotkey("$" keyRight, KeySuppressor, "On")
-    Hotkey("$" keyLeftClick, KeySuppressor, "On")
-    Hotkey("$" keyRightClick, KeySuppressor, "On")
 
-    ; Start the timer to check key states at specified intervals
+    ; Define hotkeys for keyLeftClick and keyRightClick
+    Hotkey("$" keyLeftClick, LeftClickDown, "On")
+    Hotkey("$" keyLeftClick " Up", LeftClickUp, "On")
+    Hotkey("$" keyRightClick, RightClick, "On")
+
+    ; Start the timer
     SetTimer(CheckKeys, moveInterval)
 }
 
 DeactivateMove(*) {
-    global keyUp, keyDown, keyLeft, keyRight, keyLeftClick, keyRightClick
+    global keyUp, keyDown, keyLeft, keyRight, keyLeftClick, keyRightClick, isDragging
 
-    ; Remove the suppression hotkeys
+    ; End drag if active
+    if (isDragging) {
+        Click("Left Up")
+        isDragging := false
+    }
+
+    ; Remove hotkeys
     try {
         Hotkey("$" keyUp, "Off")
         Hotkey("$" keyLeft, "Off")
         Hotkey("$" keyDown, "Off")
         Hotkey("$" keyRight, "Off")
         Hotkey("$" keyLeftClick, "Off")
+        Hotkey("$" keyLeftClick " Up", "Off")
         Hotkey("$" keyRightClick, "Off")
     }
 
-    ; Stop the timer when activation key is released
+    ; Stop the timer
     SetTimer(CheckKeys, 0)
-}
-
-; Function to suppress key input
-KeySuppressor(*) {
-    ; Do nothing, effectively suppressing the key
-    return
 }
 
 ; === Function Definitions ===
 
 ; Function to check the current keys pressed and determine direction
 CheckKeys() {
-    global moveDistance, keyUp, keyDown, keyLeft, keyRight, keyLeftClick, keyRightClick
+    global moveDistance, keyUp, keyDown, keyLeft, keyRight
 
     ; Determine current keys pressed
     upPressed := GetKeyState(keyUp, "P")
     leftPressed := GetKeyState(keyLeft, "P")
     downPressed := GetKeyState(keyDown, "P")
     rightPressed := GetKeyState(keyRight, "P")
-    leftClickPressed := GetKeyState(keyLeftClick, "P")
-    rightClickPressed := GetKeyState(keyRightClick, "P")
-
-    ; Handle mouse clicks first
-    if (leftClickPressed) {
-        Click("Left")
-        return  ; Return to prevent multiple actions in the same tick
-    }
-    if (rightClickPressed) {
-        Click("Right")
-        return  ; Return to prevent multiple actions in the same tick
-    }
 
     ; Determine direction based on keys pressed
     if (upPressed && leftPressed)
@@ -196,10 +197,30 @@ CheckKeys() {
     else
         direction := ""
 
-    ; Move the mouse if any direction is pressed
+    ; Move the mouse
     if (direction != "") {
         MoveMouse(direction)
     }
+}
+
+LeftClickDown(*) {
+    global isDragging
+    if (!isDragging) {
+        Click("Left Down")
+        isDragging := true
+    }
+}
+
+LeftClickUp(*) {
+    global isDragging
+    if (isDragging) {
+        Click("Left Up")
+        isDragging := false
+    }
+}
+
+RightClick(*) {
+    Click("Right")
 }
 
 ; Function to move the mouse based on the direction
