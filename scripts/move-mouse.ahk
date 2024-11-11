@@ -9,8 +9,9 @@ A_TrayMenu.Add("Exit", (*) => ExitApp())
 
 ; Define global variables at the start of the script
 global isDragging := false
+global movementStartTime := 0  ; Variable to track the start time of movement
 
-; Function to suppress key inputd
+; Function to suppress key inputs
 KeySuppressor(*) {
     ; Empty function to suppress keys
     return
@@ -43,12 +44,23 @@ ReadSettingsFile() {
         settings["right"] := "d"
         settings["leftClick"] := "j"
         settings["rightClick"] := "k"
+        settings["minDistance"] := 1
+        settings["maxDistance"] := 20
+        settings["accelerationDuration"] := 2000
 
         ; Parse Movement settings
         if (RegExMatch(fileContent, "Distance=(\d+)", &match))
-            settings["distance"] := Integer(match[1])
+            settings["distance"] := Round(Number(match[1]))
         if (RegExMatch(fileContent, "Interval=(\d+)", &match))
-            settings["interval"] := Integer(match[1])
+            settings["interval"] := Round(Number(match[1]))
+
+        ; Parse Acceleration settings
+        if (RegExMatch(fileContent, "MinDistance=(\d+)", &match))
+            settings["minDistance"] := Round(Number(match[1]))
+        if (RegExMatch(fileContent, "MaxDistance=(\d+)", &match))
+            settings["maxDistance"] := Round(Number(match[1]))
+        if (RegExMatch(fileContent, "AccelerationDuration=(\d+)", &match))
+            settings["accelerationDuration"] := Round(Number(match[1]))
 
         ; Parse Keybind settings
         if (RegExMatch(fileContent, "Activation=(.+)\n", &match))
@@ -61,8 +73,6 @@ ReadSettingsFile() {
             settings["left"] := Trim(match[1])
         if (RegExMatch(fileContent, "Right=(.+)\n", &match))
             settings["right"] := Trim(match[1])
-
-        ; Parse Click settings
         if (RegExMatch(fileContent, "LeftClick=(.+)\n", &match))
             settings["leftClick"] := Trim(match[1])
         if (RegExMatch(fileContent, "RightClick=(.+)\n", &match))
@@ -78,14 +88,17 @@ ReadSettingsFile() {
             "up", "w",
             "down", "s",
             "left", "a",
-            "right", "d"
+            "right", "d",
+            "minDistance", 1,
+            "maxDistance", 20,
+            "accelerationDuration", 2000
         )
     }
 }
 
 ; Read settings and set up variables
 global moveDistance, moveInterval, keyUp, keyDown, keyLeft, keyRight, keyLeftClick, keyRightClick, activationKey,
-    isDragging
+    isDragging, minMoveDistance, maxMoveDistance, accelerationDuration
 
 try {
     if FileExist(settingsPath) {
@@ -99,6 +112,9 @@ try {
         activationKey := settings["activation"]
         keyLeftClick := settings["leftClick"]
         keyRightClick := settings["rightClick"]
+        minMoveDistance := settings["minDistance"]
+        maxMoveDistance := settings["maxDistance"]
+        accelerationDuration := settings["accelerationDuration"]
     } else {
         ; Default values
         moveDistance := 50
@@ -110,6 +126,9 @@ try {
         activationKey := "RAlt"
         keyLeftClick := "j"
         keyRightClick := "k"
+        minMoveDistance := 1
+        maxMoveDistance := 20
+        accelerationDuration := 2000
     }
 } catch as err {
     MsgBox("Error in settings initialization:`n" err.Message)
@@ -124,7 +143,8 @@ Hotkey(activationKey, ActivateMove)
 Hotkey(activationKey " Up", DeactivateMove)
 
 ActivateMove(*) {
-    global keyUp, keyDown, keyLeft, keyRight, keyLeftClick, keyRightClick, moveInterval
+    global keyUp, keyDown, keyLeft, keyRight, keyLeftClick, keyRightClick, moveInterval, movementStartTime
+    movementStartTime := 0  ; Reset movement start time
 
     ; Suppress movement keys
     Hotkey("$" keyUp, KeySuppressor, "On")
@@ -142,7 +162,9 @@ ActivateMove(*) {
 }
 
 DeactivateMove(*) {
-    global keyUp, keyDown, keyLeft, keyRight, keyLeftClick, keyRightClick, isDragging
+    global keyUp, keyDown, keyLeft, keyRight, keyLeftClick, keyRightClick, isDragging, movementStartTime
+
+    movementStartTime := 0  ; Reset movement start time
 
     ; End drag if active
     if (isDragging) {
@@ -169,7 +191,7 @@ DeactivateMove(*) {
 
 ; Function to check the current keys pressed and determine direction
 CheckKeys() {
-    global moveDistance, keyUp, keyDown, keyLeft, keyRight
+    global keyUp, keyDown, keyLeft, keyRight, movementStartTime, minMoveDistance, maxMoveDistance, accelerationDuration
 
     ; Determine current keys pressed
     upPressed := GetKeyState(keyUp, "P")
@@ -177,7 +199,20 @@ CheckKeys() {
     downPressed := GetKeyState(keyDown, "P")
     rightPressed := GetKeyState(keyRight, "P")
 
+    anyKeyPressed := upPressed || downPressed || leftPressed || rightPressed
+
+    ; Start or reset movementStartTime
+    if (anyKeyPressed) {
+        if (movementStartTime == 0) {
+            movementStartTime := A_TickCount  ; Record the start time
+        }
+    } else {
+        movementStartTime := 0  ; Reset when no movement keys are pressed
+        return
+    }
+
     ; Determine direction based on keys pressed
+    direction := ""
     if (upPressed && leftPressed)
         direction := "up-left"
     else if (upPressed && rightPressed)
@@ -194,12 +229,23 @@ CheckKeys() {
         direction := "down"
     else if (rightPressed)
         direction := "right"
-    else
-        direction := ""
 
-    ; Move the mouse
     if (direction != "") {
-        MoveMouse(direction)
+        ; Calculate moveDistanceAdjusted based on duration
+        duration := A_TickCount - movementStartTime
+
+        ; Calculate moveDistanceAdjusted
+        moveDistanceAdjusted := minMoveDistance + (maxMoveDistance - minMoveDistance) * (duration /
+            accelerationDuration)
+
+        ; Ensure moveDistanceAdjusted is within limits
+        if (moveDistanceAdjusted > maxMoveDistance)
+            moveDistanceAdjusted := maxMoveDistance
+        if (moveDistanceAdjusted < minMoveDistance)
+            moveDistanceAdjusted := minMoveDistance
+
+        ; Move the mouse
+        MoveMouse(direction, moveDistanceAdjusted)
     }
 }
 
@@ -224,9 +270,7 @@ RightClick(*) {
 }
 
 ; Function to move the mouse based on the direction
-MoveMouse(direction) {
-    global moveDistance
-
+MoveMouse(direction, moveDistanceAdjusted) {
     ; Initialize movement values
     x := 0
     y := 0
@@ -234,25 +278,25 @@ MoveMouse(direction) {
     ; Determine movement based on direction
     switch direction {
         case "up":
-            y := -moveDistance
+            y := -moveDistanceAdjusted
         case "down":
-            y := moveDistance
+            y := moveDistanceAdjusted
         case "left":
-            x := -moveDistance
+            x := -moveDistanceAdjusted
         case "right":
-            x := moveDistance
+            x := moveDistanceAdjusted
         case "up-right":
-            y := -moveDistance
-            x := moveDistance
+            y := -moveDistanceAdjusted
+            x := moveDistanceAdjusted
         case "up-left":
-            y := -moveDistance
-            x := -moveDistance
+            y := -moveDistanceAdjusted
+            x := -moveDistanceAdjusted
         case "down-right":
-            y := moveDistance
-            x := moveDistance
+            y := moveDistanceAdjusted
+            x := moveDistanceAdjusted
         case "down-left":
-            y := moveDistance
-            x := -moveDistance
+            y := moveDistanceAdjusted
+            x := -moveDistanceAdjusted
     }
 
     ; Move the mouse by the computed x and y values relative to current position
