@@ -11,7 +11,9 @@ LoadSettings() {
         "Up", "w",
         "Down", "s",
         "Left", "a",
-        "Right", "d"
+        "Right", "d",
+        "LeftClick", "j",
+        "RightClick", "k"
     )
 
     if FileExist(settingsPath) {
@@ -26,6 +28,8 @@ LoadSettings() {
             settings["Down"] := IniRead(settingsPath, "Keybinds", "Down", "s")
             settings["Left"] := IniRead(settingsPath, "Keybinds", "Left", "a")
             settings["Right"] := IniRead(settingsPath, "Keybinds", "Right", "d")
+            settings["LeftClick"] := IniRead(settingsPath, "Keybinds", "LeftClick", "j")
+            settings["RightClick"] := IniRead(settingsPath, "Keybinds", "RightClick", "k")
         }
     }
     return settings
@@ -62,6 +66,12 @@ downKeyInput := settingsGui.Add("Hotkey", "w100", currentSettings["Down"])
 
 settingsGui.Add("Text", "x30 y+5", "Left:")
 leftKeyInput := settingsGui.Add("Hotkey", "w100", currentSettings["Left"])
+
+settingsGui.Add("Text", "x30 y+5", "Left Click:")
+leftClickInput := settingsGui.Add("Hotkey", "w100", currentSettings["LeftClick"])
+
+settingsGui.Add("Text", "x30 y+5", "Right Click:")
+rightClickInput := settingsGui.Add("Hotkey", "w100", currentSettings["RightClick"])
 
 settingsGui.Add("Text", "x30 y+5", "Right:")
 rightKeyInput := settingsGui.Add("Hotkey", "w100", currentSettings["Right"])
@@ -100,6 +110,10 @@ SaveSettings(*) {
         fileContent .= "Down=" downKeyInput.Value "`n"
         fileContent .= "Left=" leftKeyInput.Value "`n"
         fileContent .= "Right=" rightKeyInput.Value "`n"
+
+        ; Add click settings to the INI content
+        fileContent .= "LeftClick=" leftClickInput.Value "`n"
+        fileContent .= "RightClick=" rightClickInput.Value "`n"
         
         ; Delete existing file if it exists
         if FileExist(settingsPath)

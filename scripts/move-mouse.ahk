@@ -18,11 +18,11 @@ settingsPath := A_ScriptDir "\settings.ini"
 ; Function to parse INI content manually
 ReadSettingsFile() {
     global settingsPath
-    
+
     try {
         ; Read the file content
         fileContent := FileRead(settingsPath)
-        
+
         ; Initialize default values
         settings := Map()
         settings["distance"] := 50
@@ -32,13 +32,15 @@ ReadSettingsFile() {
         settings["down"] := "s"
         settings["left"] := "a"
         settings["right"] := "d"
-        
+        settings["leftClick"] := "j"
+        settings["rightClick"] := "k"
+
         ; Parse Movement settings
         if (RegExMatch(fileContent, "Distance=(\d+)", &match))
             settings["distance"] := Integer(match[1])
         if (RegExMatch(fileContent, "Interval=(\d+)", &match))
             settings["interval"] := Integer(match[1])
-            
+
         ; Parse Keybind settings
         if (RegExMatch(fileContent, "Activation=(.+)\n", &match))
             settings["activation"] := Trim(match[1])
@@ -50,7 +52,13 @@ ReadSettingsFile() {
             settings["left"] := Trim(match[1])
         if (RegExMatch(fileContent, "Right=(.+)\n", &match))
             settings["right"] := Trim(match[1])
-            
+
+        ; Parse Click settings
+        if (RegExMatch(fileContent, "LeftClick=(.+)\n", &match))
+            settings["leftClick"] := Trim(match[1])
+        if (RegExMatch(fileContent, "RightClick=(.+)\n", &match))
+            settings["rightClick"] := Trim(match[1])
+
         return settings
     } catch as err {
         MsgBox("Error reading file:`n" err.Message)
@@ -67,7 +75,7 @@ ReadSettingsFile() {
 }
 
 ; Read settings and set up variables
-global moveDistance, moveInterval, keyUp, keyDown, keyLeft, keyRight, activationKey
+global moveDistance, moveInterval, keyUp, keyDown, keyLeft, keyRight, keyLeftClick, keyRightClick, activationKey
 
 try {
     if FileExist(settingsPath) {
@@ -79,6 +87,8 @@ try {
         keyLeft := settings["left"]
         keyRight := settings["right"]
         activationKey := settings["activation"]
+        keyLeftClick := settings["leftClick"]
+        keyRightClick := settings["rightClick"]
     } else {
         ; Default values
         moveDistance := 50
@@ -88,6 +98,8 @@ try {
         keyLeft := "a"
         keyRight := "d"
         activationKey := "RAlt"
+        keyLeftClick := "j"
+        keyRightClick := "k"
     }
 } catch as err {
     MsgBox("Error in settings initialization:`n" err.Message)
@@ -103,29 +115,33 @@ Hotkey(activationKey " Up", DeactivateMove)
 
 ; Create suppression hotkeys using $ prefix to prevent recursion
 ActivateMove(*) {
-    global keyUp, keyDown, keyLeft, keyRight
-    
+    global keyUp, keyDown, keyLeft, keyRight, keyLeftClick, keyRightClick
+
     ; Create hotkeys that suppress the original input
     Hotkey("$" keyUp, KeySuppressor, "On")
     Hotkey("$" keyLeft, KeySuppressor, "On")
     Hotkey("$" keyDown, KeySuppressor, "On")
     Hotkey("$" keyRight, KeySuppressor, "On")
-    
+    Hotkey("$" keyLeftClick, KeySuppressor, "On")
+    Hotkey("$" keyRightClick, KeySuppressor, "On")
+
     ; Start the timer to check key states at specified intervals
     SetTimer(CheckKeys, moveInterval)
 }
 
 DeactivateMove(*) {
-    global keyUp, keyDown, keyLeft, keyRight
-    
+    global keyUp, keyDown, keyLeft, keyRight, keyLeftClick, keyRightClick
+
     ; Remove the suppression hotkeys
     try {
         Hotkey("$" keyUp, "Off")
         Hotkey("$" keyLeft, "Off")
         Hotkey("$" keyDown, "Off")
         Hotkey("$" keyRight, "Off")
+        Hotkey("$" keyLeftClick, "Off")
+        Hotkey("$" keyRightClick, "Off")
     }
-    
+
     ; Stop the timer when activation key is released
     SetTimer(CheckKeys, 0)
 }
@@ -140,13 +156,25 @@ KeySuppressor(*) {
 
 ; Function to check the current keys pressed and determine direction
 CheckKeys() {
-    global moveDistance, keyUp, keyDown, keyLeft, keyRight
-    
+    global moveDistance, keyUp, keyDown, keyLeft, keyRight, keyLeftClick, keyRightClick
+
     ; Determine current keys pressed
     upPressed := GetKeyState(keyUp, "P")
     leftPressed := GetKeyState(keyLeft, "P")
     downPressed := GetKeyState(keyDown, "P")
     rightPressed := GetKeyState(keyRight, "P")
+    leftClickPressed := GetKeyState(keyLeftClick, "P")
+    rightClickPressed := GetKeyState(keyRightClick, "P")
+
+    ; Handle mouse clicks first
+    if (leftClickPressed) {
+        Click("Left")
+        return  ; Return to prevent multiple actions in the same tick
+    }
+    if (rightClickPressed) {
+        Click("Right")
+        return  ; Return to prevent multiple actions in the same tick
+    }
 
     ; Determine direction based on keys pressed
     if (upPressed && leftPressed)
