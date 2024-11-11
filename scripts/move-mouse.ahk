@@ -2,6 +2,16 @@
 #SingleInstance Force
 SetDefaultMouseSpeed(0)  ; Instant mouse movement.
 
+; Create tray menu
+A_TrayMenu.Delete() ; Clear default menu
+A_TrayMenu.Add("Settings", ShowSettings)
+A_TrayMenu.Add("Exit", (*) => ExitApp())
+
+; Create the ShowSettings function
+ShowSettings(*) {
+    Run(A_ScriptDir "\move-mouse-settings.exe")
+}
+
 ; === Configuration ===
 settingsPath := A_ScriptDir "\settings.ini"
 
