@@ -94,15 +94,6 @@ try {
     ExitApp()
 }
 
-; === Hotkey for debugging ===
-^!d:: {  ; Ctrl+Alt+D to show current values
-    MsgBox("Current Settings:`n"
-        . "Distance = " moveDistance "`n"
-        . "Interval = " moveInterval "`n"
-        . "Settings Path = " settingsPath "`n"
-        . "File Exists: " (FileExist(settingsPath) ? "Yes" : "No"))
-}
-
 ; === Hotkey Definitions ===
 
 ; Dynamically create the hotkey
@@ -110,12 +101,39 @@ HotIfWinActive("A")  ; Apply to all windows
 Hotkey(activationKey, ActivateMove)
 Hotkey(activationKey " Up", DeactivateMove)
 
+; Create suppression hotkeys using $ prefix to prevent recursion
 ActivateMove(*) {
+    global keyUp, keyDown, keyLeft, keyRight
+    
+    ; Create hotkeys that suppress the original input
+    Hotkey("$" keyUp, KeySuppressor, "On")
+    Hotkey("$" keyLeft, KeySuppressor, "On")
+    Hotkey("$" keyDown, KeySuppressor, "On")
+    Hotkey("$" keyRight, KeySuppressor, "On")
+    
+    ; Start the timer to check key states at specified intervals
     SetTimer(CheckKeys, moveInterval)
 }
 
 DeactivateMove(*) {
+    global keyUp, keyDown, keyLeft, keyRight
+    
+    ; Remove the suppression hotkeys
+    try {
+        Hotkey("$" keyUp, "Off")
+        Hotkey("$" keyLeft, "Off")
+        Hotkey("$" keyDown, "Off")
+        Hotkey("$" keyRight, "Off")
+    }
+    
+    ; Stop the timer when activation key is released
     SetTimer(CheckKeys, 0)
+}
+
+; Function to suppress key input
+KeySuppressor(*) {
+    ; Do nothing, effectively suppressing the key
+    return
 }
 
 ; === Function Definitions ===
