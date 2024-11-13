@@ -14,6 +14,8 @@ LoadSettings() {
         "Right", "d",
         "LeftClick", "j",
         "RightClick", "k",
+        "PageUp", "i",
+        "PageDown", "o",
         "MinDistance", "1",
         "MaxDistance", "20",
         "AccelerationDuration", "100"
@@ -38,6 +40,8 @@ LoadSettings() {
             settings["Right"] := IniRead(settingsPath, "Keybinds", "Right", "d")
             settings["LeftClick"] := IniRead(settingsPath, "Keybinds", "LeftClick", "j")
             settings["RightClick"] := IniRead(settingsPath, "Keybinds", "RightClick", "k")
+            settings["PageUp"] := IniRead(settingsPath, "Keybinds", "PageUp", "i")
+            settings["PageDown"] := IniRead(settingsPath, "Keybinds", "PageDown", "o")
         }
     }
     return settings
@@ -92,6 +96,12 @@ leftClickInput := settingsGui.Add("Hotkey", "w100", currentSettings["LeftClick"]
 settingsGui.Add("Text", "x30 y+5", "Right Click:")
 rightClickInput := settingsGui.Add("Hotkey", "w100", currentSettings["RightClick"])
 
+settingsGui.Add("Text", "x30 y+5", "Page Up:")
+pageUpInput := settingsGui.Add("Hotkey", "w100", currentSettings["PageUp"])
+
+settingsGui.Add("Text", "x30 y+5", "Page Down:")
+pageDownInput := settingsGui.Add("Hotkey", "w100", currentSettings["PageDown"])
+
 ; Add a button to save settings
 saveBtn := settingsGui.Add("Button", "x10 y+20 w100", "Save Settings")
 saveBtn.OnEvent("Click", SaveSettings)
@@ -106,6 +116,7 @@ SaveSettings(*) {
     global distanceInput, intervalInput, activationKeyInput
     global upKeyInput, downKeyInput, leftKeyInput, rightKeyInput
     global minDistanceInput, accelDurationInput, leftClickInput, rightClickInput
+    global pageUpInput, pageDownInput
 
     ; Save settings to an INI file using full path
     settingsPath := A_ScriptDir "\settings.ini"
@@ -147,6 +158,8 @@ SaveSettings(*) {
         fileContent .= "Right=" rightKeyInput.Value "`n"
         fileContent .= "LeftClick=" leftClickInput.Value "`n"
         fileContent .= "RightClick=" rightClickInput.Value "`n"
+        fileContent .= "PageUp=" pageUpInput.Value "`n"
+        fileContent .= "PageDown=" pageDownInput.Value "`n"
 
         ; Delete existing file if it exists
         if FileExist(settingsPath)

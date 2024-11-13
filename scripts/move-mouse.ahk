@@ -10,6 +10,7 @@ A_TrayMenu.Add("Exit", (*) => ExitApp())
 ; Define global variables at the start of the script
 global isDragging := false
 global movementStartTime := 0  ; Variable to track the start time of movement
+global keyPageUp, keyPageDown
 
 ; Function to suppress key inputs
 KeySuppressor(*) {
@@ -47,6 +48,8 @@ ReadSettingsFile() {
         settings["minDistance"] := 1
         settings["maxDistance"] := 20
         settings["accelerationDuration"] := 2000
+        settings["pageUp"] := "i"
+        settings["pageDown"] := "o"
 
         ; Parse Movement settings
         if (RegExMatch(fileContent, "Distance=(\d+)", &match))
@@ -77,6 +80,10 @@ ReadSettingsFile() {
             settings["leftClick"] := Trim(match[1])
         if (RegExMatch(fileContent, "RightClick=(.+)\n", &match))
             settings["rightClick"] := Trim(match[1])
+        if (RegExMatch(fileContent, "PageUp=([^\r\n]+)", &match))
+            settings["pageUp"] := match[1]
+        if (RegExMatch(fileContent, "PageDown=([^\r\n]+)", &match))
+            settings["pageDown"] := match[1]
 
         return settings
     } catch as err {
@@ -92,6 +99,8 @@ ReadSettingsFile() {
             "minDistance", 1,
             "maxDistance", 20,
             "accelerationDuration", 2000
+            "pageUp", "i",
+            "pageDown", "o"
         )
     }
 }
@@ -115,6 +124,8 @@ try {
         minMoveDistance := settings["minDistance"]
         maxMoveDistance := settings["maxDistance"]
         accelerationDuration := settings["accelerationDuration"]
+        keyPageUp := settings["pageUp"]
+        keyPageDown := settings["pageDown"]
     } else {
         ; Default values
         moveDistance := 50
@@ -156,6 +167,8 @@ ActivateMove(*) {
     Hotkey("$" keyLeftClick, LeftClickDown, "On")
     Hotkey("$" keyLeftClick " Up", LeftClickUp, "On")
     Hotkey("$" keyRightClick, RightClick, "On")
+    Hotkey("$" keyPageUp, PageUpScroll, "On")
+    Hotkey("$" keyPageDown, PageDownScroll, "On")
 
     ; Start the timer
     SetTimer(CheckKeys, moveInterval)
@@ -181,6 +194,8 @@ DeactivateMove(*) {
         Hotkey("$" keyLeftClick, "Off")
         Hotkey("$" keyLeftClick " Up", "Off")
         Hotkey("$" keyRightClick, "Off")
+        Hotkey("$" keyPageUp, "Off")
+        Hotkey("$" keyPageDown, "Off")
     }
 
     ; Stop the timer
@@ -267,6 +282,14 @@ LeftClickUp(*) {
 
 RightClick(*) {
     Click("Right")
+}
+
+PageUpScroll(*) {
+    Click("WheelUp", , , 3)  ; Scroll up 3 clicks
+}
+
+PageDownScroll(*) {
+    Click("WheelDown", , , 3)  ; Scroll down 3 clicks
 }
 
 ; Function to move the mouse based on the direction
