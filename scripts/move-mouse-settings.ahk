@@ -5,7 +5,6 @@
 LoadSettings() {
     settingsPath := A_ScriptDir "\settings.ini"
     settings := Map(
-        "Distance", "5",
         "Interval", "1",
         "Activation", "RAlt",
         "Up", "w",
@@ -24,7 +23,6 @@ LoadSettings() {
     if FileExist(settingsPath) {
         try {
             ; Load Movement settings
-            settings["Distance"] := IniRead(settingsPath, "Movement", "Distance", "5")
             settings["Interval"] := IniRead(settingsPath, "Movement", "Interval", "1")
 
             ; Load Acceleration settings
@@ -140,7 +138,6 @@ SaveSettings(*) {
 
         ; Create INI content
         fileContent := "[Movement]`n"
-        fileContent .= "Distance=" maxDistance "`n"
         fileContent .= "Interval=" interval "`n"
 
         ; Add acceleration settings

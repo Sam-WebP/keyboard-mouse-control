@@ -36,7 +36,6 @@ ReadSettingsFile() {
 
         ; Initialize default values
         settings := Map()
-        settings["distance"] := 20
         settings["interval"] := 1
         settings["activation"] := "LAlt"
         settings["up"] := "w"
@@ -52,8 +51,6 @@ ReadSettingsFile() {
         settings["pageDown"] := "o"
 
         ; Parse Movement settings
-        if (RegExMatch(fileContent, "Distance=(\d+)", &match))
-            settings["distance"] := Round(Number(match[1]))
         if (RegExMatch(fileContent, "Interval=(\d+)", &match))
             settings["interval"] := Round(Number(match[1]))
 
@@ -89,7 +86,6 @@ ReadSettingsFile() {
     } catch as err {
         MsgBox("Error reading file:`n" err.Message)
         return Map(
-            "distance", 50,
             "interval", 1,
             "activation", "RAlt",
             "up", "w",
@@ -98,7 +94,7 @@ ReadSettingsFile() {
             "right", "d",
             "minDistance", 1,
             "maxDistance", 20,
-            "accelerationDuration", 2000
+            "accelerationDuration", 2000,
             "pageUp", "i",
             "pageDown", "o"
         )
@@ -106,13 +102,12 @@ ReadSettingsFile() {
 }
 
 ; Read settings and set up variables
-global moveDistance, moveInterval, keyUp, keyDown, keyLeft, keyRight, keyLeftClick, keyRightClick, activationKey,
+global moveInterval, keyUp, keyDown, keyLeft, keyRight, keyLeftClick, keyRightClick, activationKey,
     isDragging, minMoveDistance, maxMoveDistance, accelerationDuration
 
 try {
     if FileExist(settingsPath) {
         settings := ReadSettingsFile()
-        moveDistance := settings["distance"]
         moveInterval := settings["interval"]
         keyUp := settings["up"]
         keyDown := settings["down"]
@@ -128,7 +123,6 @@ try {
         keyPageDown := settings["pageDown"]
     } else {
         ; Default values
-        moveDistance := 50
         moveInterval := 1
         keyUp := "w"
         keyDown := "s"
