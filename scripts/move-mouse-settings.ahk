@@ -53,55 +53,56 @@ settingsGui := Gui(, "Mouse Control Settings")
 settingsGui.SetFont("s10")
 
 ; Movement Settings Group
-settingsGui.Add("GroupBox", "w300 h120", "Movement Settings")
+settingsGui.Add("GroupBox", "x10 y10 w300 h180", "Movement Settings")
 settingsGui.Add("Text", "xp+10 yp+20", "Maximum Movement Distance (pixels):")
-distanceInput := settingsGui.Add("Edit", "w50", currentSettings["MaxDistance"])
+distanceInput := settingsGui.Add("Edit", "x+5 yp w50", currentSettings["MaxDistance"])
 upDown1 := settingsGui.Add("UpDown", "Range1-100", currentSettings["MaxDistance"])
 
-settingsGui.Add("Text", "xp+0 y+10", "Minimum Movement Distance (pixels):")
-minDistanceInput := settingsGui.Add("Edit", "w50", currentSettings["MinDistance"])
+settingsGui.Add("Text", "x20 y+10", "Minimum Movement Distance (pixels):")
+minDistanceInput := settingsGui.Add("Edit", "x+5 yp w50", currentSettings["MinDistance"])
 upDownMin := settingsGui.Add("UpDown", "Range1-100", currentSettings["MinDistance"])
 
-settingsGui.Add("Text", "xp+0 y+10", "Acceleration Duration (ms):")
-accelDurationInput := settingsGui.Add("Edit", "w50", currentSettings["AccelerationDuration"])
+settingsGui.Add("Text", "x20 y+10", "Acceleration Duration (ms):")
+accelDurationInput := settingsGui.Add("Edit", "x+5 yp w50", currentSettings["AccelerationDuration"])
 upDownAccel := settingsGui.Add("UpDown", "Range100-5000", currentSettings["AccelerationDuration"])
 
-settingsGui.Add("Text", "xp+0 y+10", "Movement Interval (ms):")
-intervalInput := settingsGui.Add("Edit", "w50", currentSettings["Interval"])
+settingsGui.Add("Text", "x20 y+10", "Movement Interval (ms):")
+intervalInput := settingsGui.Add("Edit", "x+5 yp w50", currentSettings["Interval"])
 upDown2 := settingsGui.Add("UpDown", "Range1-100", currentSettings["Interval"])
 
 ; Keybind Settings Group
-settingsGui.Add("GroupBox", "x10 y+20 w300 h220", "Keybind Settings")
+settingsGui.Add("GroupBox", "x320 y10 w344 h180", "Keybind Settings")
 settingsGui.Add("Text", "xp+10 yp+20", "Activation Key:")
-activationKeyInput := settingsGui.Add("Hotkey", "w100", currentSettings["Activation"])
+activationKeyInput := settingsGui.Add("Hotkey", "x+5 yp w100", currentSettings["Activation"])
 
-settingsGui.Add("Text", "x20 y+10", "Movement Keys:")
-settingsGui.Add("Text", "x30 y+5", "Up:")
-upKeyInput := settingsGui.Add("Hotkey", "w100", currentSettings["Up"])
+; First column of keybinds
+settingsGui.Add("Text", "x330 y+10", "Up:")
+upKeyInput := settingsGui.Add("Hotkey", "x+5 yp w100", currentSettings["Up"])
 
-settingsGui.Add("Text", "x30 y+5", "Down:")
-downKeyInput := settingsGui.Add("Hotkey", "w100", currentSettings["Down"])
+settingsGui.Add("Text", "x330 y+5", "Down:")
+downKeyInput := settingsGui.Add("Hotkey", "x+5 yp w100", currentSettings["Down"])
 
-settingsGui.Add("Text", "x30 y+5", "Left:")
-leftKeyInput := settingsGui.Add("Hotkey", "w100", currentSettings["Left"])
+settingsGui.Add("Text", "x330 y+5", "Left:")
+leftKeyInput := settingsGui.Add("Hotkey", "x+5 yp w100", currentSettings["Left"])
 
-settingsGui.Add("Text", "x30 y+5", "Right:")
-rightKeyInput := settingsGui.Add("Hotkey", "w100", currentSettings["Right"])
+settingsGui.Add("Text", "x330 y+5", "Right:")
+rightKeyInput := settingsGui.Add("Hotkey", "x+5 yp w100", currentSettings["Right"])
 
-settingsGui.Add("Text", "x30 y+5", "Left Click:")
-leftClickInput := settingsGui.Add("Hotkey", "w100", currentSettings["LeftClick"])
+; Second column of keybinds
+settingsGui.Add("Text", "x480 y55", "Left Click:")
+leftClickInput := settingsGui.Add("Hotkey", "x+5 yp w100", currentSettings["LeftClick"])
 
-settingsGui.Add("Text", "x30 y+5", "Right Click:")
-rightClickInput := settingsGui.Add("Hotkey", "w100", currentSettings["RightClick"])
+settingsGui.Add("Text", "x480 y+5", "Right Click:")
+rightClickInput := settingsGui.Add("Hotkey", "x+5 yp w100", currentSettings["RightClick"])
 
-settingsGui.Add("Text", "x30 y+5", "Page Up:")
-pageUpInput := settingsGui.Add("Hotkey", "w100", currentSettings["PageUp"])
+settingsGui.Add("Text", "x480 y+5", "Page Up:")
+pageUpInput := settingsGui.Add("Hotkey", "x+5 yp w100", currentSettings["PageUp"])
 
-settingsGui.Add("Text", "x30 y+5", "Page Down:")
-pageDownInput := settingsGui.Add("Hotkey", "w100", currentSettings["PageDown"])
+settingsGui.Add("Text", "x480 y+5", "Page Down:")
+pageDownInput := settingsGui.Add("Hotkey", "x+5 yp w100", currentSettings["PageDown"])
 
 ; Add a button to save settings
-saveBtn := settingsGui.Add("Button", "x10 y+20 w100", "Save Settings")
+saveBtn := settingsGui.Add("Button", "x10 y200 w100", "Save Settings")
 saveBtn.OnEvent("Click", SaveSettings)
 
 ; Prevent the script from closing when the GUI is closed
