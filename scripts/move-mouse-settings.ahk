@@ -20,27 +20,45 @@ LoadSettings() {
         "AccelerationDuration", "100"
     )
 
-    if FileExist(settingsPath) {
-        try {
-            ; Load Movement settings
-            settings["Interval"] := IniRead(settingsPath, "Movement", "Interval", "1")
+    try {
+        if FileExist(settingsPath) {
+            ; Read the file content
+            fileContent := FileRead(settingsPath)
 
-            ; Load Acceleration settings
-            settings["MinDistance"] := IniRead(settingsPath, "Acceleration", "MinDistance", "1")
-            settings["MaxDistance"] := IniRead(settingsPath, "Acceleration", "MaxDistance", "20")
-            settings["AccelerationDuration"] := IniRead(settingsPath, "Acceleration", "AccelerationDuration", "100")
+            ; Parse Movement settings
+            if (RegExMatch(fileContent, "Interval=(\d+)", &match))
+                settings["Interval"] := match[1]
 
-            ; Load Keybind settings
-            settings["Activation"] := IniRead(settingsPath, "Keybinds", "Activation", "RAlt")
-            settings["Up"] := IniRead(settingsPath, "Keybinds", "Up", "w")
-            settings["Down"] := IniRead(settingsPath, "Keybinds", "Down", "s")
-            settings["Left"] := IniRead(settingsPath, "Keybinds", "Left", "a")
-            settings["Right"] := IniRead(settingsPath, "Keybinds", "Right", "d")
-            settings["LeftClick"] := IniRead(settingsPath, "Keybinds", "LeftClick", "j")
-            settings["RightClick"] := IniRead(settingsPath, "Keybinds", "RightClick", "k")
-            settings["PageUp"] := IniRead(settingsPath, "Keybinds", "PageUp", "i")
-            settings["PageDown"] := IniRead(settingsPath, "Keybinds", "PageDown", "o")
+            ; Parse Acceleration settings
+            if (RegExMatch(fileContent, "MinDistance=(\d+)", &match))
+                settings["MinDistance"] := match[1]
+            if (RegExMatch(fileContent, "MaxDistance=(\d+)", &match))
+                settings["MaxDistance"] := match[1]
+            if (RegExMatch(fileContent, "AccelerationDuration=(\d+)", &match))
+                settings["AccelerationDuration"] := match[1]
+
+            ; Parse Keybind settings
+            if (RegExMatch(fileContent, "Activation=(.+)\n", &match))
+                settings["Activation"] := Trim(match[1])
+            if (RegExMatch(fileContent, "Up=(.+)\n", &match))
+                settings["Up"] := Trim(match[1])
+            if (RegExMatch(fileContent, "Down=(.+)\n", &match))
+                settings["Down"] := Trim(match[1])
+            if (RegExMatch(fileContent, "Left=(.+)\n", &match))
+                settings["Left"] := Trim(match[1])
+            if (RegExMatch(fileContent, "Right=(.+)\n", &match))
+                settings["Right"] := Trim(match[1])
+            if (RegExMatch(fileContent, "LeftClick=(.+)\n", &match))
+                settings["LeftClick"] := Trim(match[1])
+            if (RegExMatch(fileContent, "RightClick=(.+)\n", &match))
+                settings["RightClick"] := Trim(match[1])
+            if (RegExMatch(fileContent, "PageUp=([^\r\n]+)", &match))
+                settings["PageUp"] := match[1]
+            if (RegExMatch(fileContent, "PageDown=([^\r\n]+)", &match))
+                settings["PageDown"] := match[1]
         }
+    } catch as err {
+        MsgBox("Error reading settings file:`n" err.Message)
     }
     return settings
 }
