@@ -37,7 +37,7 @@ ReadSettingsFile() {
         ; Initialize default values
         settings := Map()
         settings["interval"] := 1
-        settings["activation"] := "LAlt"
+        settings["activation"] := "CapsLock"
         settings["up"] := "w"
         settings["down"] := "s"
         settings["left"] := "a"
@@ -87,7 +87,7 @@ ReadSettingsFile() {
         MsgBox("Error reading file:`n" err.Message)
         return Map(
             "interval", 1,
-            "activation", "RAlt",
+            "activation", "CapsLock",
             "up", "w",
             "down", "s",
             "left", "a",
@@ -128,7 +128,7 @@ try {
         keyDown := "s"
         keyLeft := "a"
         keyRight := "d"
-        activationKey := "RAlt"
+        activationKey := "CapsLock"
         keyLeftClick := "j"
         keyRightClick := "k"
         minMoveDistance := 1

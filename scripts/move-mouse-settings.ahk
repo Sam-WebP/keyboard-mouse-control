@@ -6,7 +6,7 @@ LoadSettings() {
     settingsPath := A_ScriptDir "\settings.ini"
     settings := Map(
         "Interval", "1",
-        "Activation", "RAlt",
+        "Activation", "CapsLock",
         "Up", "w",
         "Down", "s",
         "Left", "a",
