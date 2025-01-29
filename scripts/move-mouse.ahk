@@ -35,7 +35,7 @@ ReadSettingsFile() {
         ; Read the file content
         fileContent := FileRead(settingsPath)
 
-        ; Initialize default values
+        ; Initialise default values
         settings := Map()
         settings["interval"] := 1
         settings["activation"] := "CapsLock"
