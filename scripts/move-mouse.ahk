@@ -6,6 +6,7 @@ SetDefaultMouseSpeed(0)
 A_TrayMenu.Delete() ; Clear default menu
 A_TrayMenu.Add("Settings", ShowSettings)
 A_TrayMenu.Add("Exit", (*) => ExitApp())
+TraySetIcon("../icons/mouse-icon.ico")
 
 ; Define global variables at the start of the script
 global isDragging := false
