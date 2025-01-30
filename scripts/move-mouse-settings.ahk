@@ -7,6 +7,7 @@ LoadSettings() {
     settings := Map(
         "Interval", "1",
         "Activation", "CapsLock",
+        "Mode", "hold",
         "Up", "w",
         "Down", "s",
         "Left", "a",
@@ -40,6 +41,8 @@ LoadSettings() {
             ; Parse Keybind settings
             if (RegExMatch(fileContent, "Activation=(.+)\n", &match))
                 settings["Activation"] := Trim(match[1])
+            if (RegExMatch(fileContent, "ActivationMode=(\w+)", &match))
+                settings["Mode"] := Trim(match[1])
             if (RegExMatch(fileContent, "Up=(.+)\n", &match))
                 settings["Up"] := Trim(match[1])
             if (RegExMatch(fileContent, "Down=(.+)\n", &match))
@@ -89,7 +92,7 @@ intervalInput := settingsGui.Add("Edit", "x+5 yp w50", currentSettings["Interval
 upDown2 := settingsGui.Add("UpDown", "Range1-100", currentSettings["Interval"])
 
 ; Keybind Settings Group
-settingsGui.Add("GroupBox", "x320 y10 w344 h180", "Keybind Settings")
+settingsGui.Add("GroupBox", "x320 y10 w344 h210", "Keybind Settings")
 settingsGui.Add("Text", "xp+10 yp+20", "Activation Key:")
 activationKeyInput := settingsGui.Add("Hotkey", "x+5 yp w100", currentSettings["Activation"])
 
@@ -113,6 +116,10 @@ leftClickInput := settingsGui.Add("Hotkey", "x+5 yp w100", currentSettings["Left
 settingsGui.Add("Text", "x480 y+5", "Right Click:")
 rightClickInput := settingsGui.Add("Hotkey", "x+5 yp w100", currentSettings["RightClick"])
 
+settingsGui.Add("Text", "x480 y+5", "Activation Mode:")
+modeDDL := settingsGui.Add("DropDownList", "x+5 yp w100 Choose" (currentSettings["Mode"] = "toggle" ? 2 : 1), ["Hold",
+    "Toggle"])
+
 settingsGui.Add("Text", "x480 y+5", "Page Up:")
 pageUpInput := settingsGui.Add("Hotkey", "x+5 yp w100", currentSettings["PageUp"])
 
@@ -120,7 +127,7 @@ settingsGui.Add("Text", "x480 y+5", "Page Down:")
 pageDownInput := settingsGui.Add("Hotkey", "x+5 yp w100", currentSettings["PageDown"])
 
 ; Add a button to save settings
-saveBtn := settingsGui.Add("Button", "x10 y200 w100", "Save Settings")
+saveBtn := settingsGui.Add("Button", "x10 y220 w100", "Save Settings")
 saveBtn.OnEvent("Click", SaveSettings)
 
 ; Prevent the script from closing when the GUI is closed
@@ -130,7 +137,7 @@ settingsGui.OnEvent("Close", (*) => ExitApp())
 settingsGui.Show()
 
 SaveSettings(*) {
-    global distanceInput, intervalInput, activationKeyInput
+    global distanceInput, intervalInput, activationKeyInput, modeDDL
     global upKeyInput, downKeyInput, leftKeyInput, rightKeyInput
     global minDistanceInput, accelDurationInput, leftClickInput, rightClickInput
     global pageUpInput, pageDownInput
@@ -168,6 +175,7 @@ SaveSettings(*) {
         ; Add keybind settings
         fileContent .= "`n[Keybinds]`n"
         fileContent .= "Activation=" activationKeyInput.Value "`n"
+        fileContent .= "ActivationMode=" modeDDL.Text "`n"
         fileContent .= "Up=" upKeyInput.Value "`n"
         fileContent .= "Down=" downKeyInput.Value "`n"
         fileContent .= "Left=" leftKeyInput.Value "`n"

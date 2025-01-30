@@ -8,10 +8,12 @@ A_TrayMenu.Add("Settings", ShowSettings)
 A_TrayMenu.Add("Exit", (*) => ExitApp())
 TraySetIcon("../icons/mouse-icon.ico")
 
-; Define global variables at the start of the script
+; Define global variables
 global isDragging := false
 global movementStartTime := 0  ; Variable to track the start time of movement
 global keyPageUp, keyPageDown
+global isActive := false
+global activationMode := "hold"
 
 ; Function to suppress key inputs
 KeySuppressor(*) {
@@ -39,6 +41,7 @@ ReadSettingsFile() {
         settings := Map()
         settings["interval"] := 1
         settings["activation"] := "CapsLock"
+        settings["mode"] := "hold"
         settings["up"] := "w"
         settings["down"] := "s"
         settings["left"] := "a"
@@ -66,6 +69,8 @@ ReadSettingsFile() {
         ; Parse Keybind settings
         if (RegExMatch(fileContent, "Activation=(.+)\n", &match))
             settings["activation"] := Trim(match[1])
+        if (RegExMatch(fileContent, "ActivationMode=(\w+)", &match))
+            settings["mode"] := Trim(match[1])
         if (RegExMatch(fileContent, "Up=(.+)\n", &match))
             settings["up"] := Trim(match[1])
         if (RegExMatch(fileContent, "Down=(.+)\n", &match))
@@ -89,6 +94,7 @@ ReadSettingsFile() {
         return Map(
             "interval", 1,
             "activation", "CapsLock",
+            "mode", "hold",
             "up", "w",
             "down", "s",
             "left", "a",
@@ -115,6 +121,7 @@ try {
         keyLeft := settings["left"]
         keyRight := settings["right"]
         activationKey := settings["activation"]
+        activationMode := settings["mode"]
         keyLeftClick := settings["leftClick"]
         keyRightClick := settings["rightClick"]
         minMoveDistance := settings["minDistance"]
@@ -130,6 +137,7 @@ try {
         keyLeft := "a"
         keyRight := "d"
         activationKey := "CapsLock"
+        activationMode := "hold"
         keyLeftClick := "j"
         keyRightClick := "k"
         minMoveDistance := 1
@@ -145,11 +153,35 @@ try {
 
 ; Dynamically create the hotkey
 HotIfWinActive("A")  ; Apply to all windows
-Hotkey(activationKey, ActivateMove)
-Hotkey(activationKey " Up", DeactivateMove)
+
+if (activationMode = "hold") {
+    Hotkey(activationKey, ActivateMove)
+    Hotkey(activationKey " Up", DeactivateMove)
+} else {
+    Hotkey(activationKey, ToggleActivation)
+}
+
+ToggleActivation(*) {
+    global isActive
+    isActive := !isActive
+    if (isActive) {
+        ActivateMove()
+    } else {
+        DeactivateMove()
+    }
+}
 
 ActivateMove(*) {
-    global keyUp, keyDown, keyLeft, keyRight, keyLeftClick, keyRightClick, moveInterval, movementStartTime
+    global keyUp, keyDown, keyLeft, keyRight, keyLeftClick, keyRightClick, moveInterval, movementStartTime,
+        activationMode, isActive
+
+    if (activationMode = "toggle") {
+        if (!isActive)
+            return
+    } else {
+        isActive := true
+    }
+
     movementStartTime := 0  ; Reset movement start time
 
     ; Suppress movement keys
@@ -170,9 +202,13 @@ ActivateMove(*) {
 }
 
 DeactivateMove(*) {
-    global keyUp, keyDown, keyLeft, keyRight, keyLeftClick, keyRightClick, isDragging, movementStartTime
+    global keyUp, keyDown, keyLeft, keyRight, keyLeftClick, keyRightClick
+    global isDragging, movementStartTime, activationMode, isActive
 
-    movementStartTime := 0  ; Reset movement start time
+    ; Reset activation state for hold mode
+    if (activationMode = "hold") {
+        isActive := false
+    }
 
     ; End drag if active
     if (isDragging) {
@@ -180,7 +216,7 @@ DeactivateMove(*) {
         isDragging := false
     }
 
-    ; Remove hotkeys
+    ; Remove hotkey suppression
     try {
         Hotkey("$" keyUp, "Off")
         Hotkey("$" keyLeft, "Off")
@@ -192,6 +228,9 @@ DeactivateMove(*) {
         Hotkey("$" keyPageUp, "Off")
         Hotkey("$" keyPageDown, "Off")
     }
+
+    ; Reset movement tracking
+    movementStartTime := 0
 
     ; Stop the timer
     SetTimer(CheckKeys, 0)
