@@ -35,7 +35,7 @@ Frustrated by constantly breaking my keyboard-centric workflow to reach for the 
 
 ### Steps
 
-1. **Download the Repository**: Clone or download the repository from https://github.com/Sam-WebP/keyboard-mouse-control
+1. **Download**: Download the latest release from https://github.com/Sam-WebP/keyboard-mouse-control/releases
 2. **Extract Files**: Extract all files from the downloaded archive to a directory of your choice.
 3. **Run the Launcher**: Run `launcher.exe`, this will start the mouse control script.
 4. **Configure Settings**:
