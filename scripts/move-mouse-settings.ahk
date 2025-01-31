@@ -146,15 +146,16 @@ SaveSettings(*) {
     settingsPath := A_ScriptDir "\settings.ini"
 
     try {
-        ; Convert values to numbers and round them to integers
-        maxDistance := Round(Number(distanceInput.Value))
-        minDistance := Round(Number(minDistanceInput.Value))
-        interval := Round(Number(intervalInput.Value))
-        accelDuration := Round(Number(accelDurationInput.Value))
+        ; Retrieve values directly from UpDown controls
+        maxDistance := upDown1.Value
+        minDistance := upDownMin.Value
+        interval := upDown2.Value
+        accelDuration := upDownAccel.Value
 
-        ; Validate that the numeric values are within acceptable ranges
-        if (maxDistance <= 0)
-            throw Error("Maximum Distance must be a positive number.")
+        ; Validate numeric input (using the retrieved numeric values)
+        if (maxDistance <= 0 || minDistance <= 0 || interval <= 0 || accelDuration <= 0) {
+            throw Error("All numeric settings must be greater than zero.")
+        }
         if (minDistance <= 0)
             throw Error("Minimum Distance must be a positive number.")
         if (interval <= 0)
