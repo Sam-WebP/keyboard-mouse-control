@@ -56,7 +56,7 @@ Frustrated by constantly breaking my keyboard-centric workflow to reach for the 
   - _Hold Mode_ (Default): Keep activation key pressed to maintain mouse control
   - _Toggle Mode_: Press once to enable, press again to disable mouse control
 - **Movement Keys**: Use `W`, `A`, `S`, `D` (or your configured keys) to move the mouse in the corresponding directions. Diagonal movements are supported with key combinations.
-- **Mouse Buttons**: Use your configured keys for left (`J` by default) and right clicks (`J` by default).
+- **Mouse Buttons**: Use your configured keys for left (`J` by default) and right clicks (`K` by default).
 - **Scrolling**: Use `I` and `O` (or your configured keys) for page up and page down.
 - **Drag and Drop**: Hold the left mouse key (configured as `J` by default) to drag, and release to stop.
 
